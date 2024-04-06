@@ -26,6 +26,11 @@ proc show_help =
   echo("  --version      WARNING! Show version information and exit")
   exit.success()
 
+proc eh_click_hello(e: webui.Event): string =
+  let js_fn_name: string = e.element
+  echo("JS function call to '", js_fn_name, "', event: '", e.eventType, "'")
+  return "Message from Nim"
+
 proc main =
 
   const options_long_no_val = @[
@@ -64,6 +69,10 @@ proc main =
     TemplateIndex = staticRead("../templates/index.html")
 
   let window = webui.newWindow()
+
+  #window.bind("", eh_log_type)
+
+  window.bind("eh_click_hello", eh_click_hello)
 
   window.setIcon(IconData, IconType)
   window.show(TemplateIndex)
