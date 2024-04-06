@@ -9,5 +9,5 @@ CURRENT_DATE=$(date +"%Y-%m-%d")
 nim compile \
     --define:DEBUG \
     --define:COMPILE_DATE:"$CURRENT_DATE" \
-    --out:draftable-debug --outdir:../build \
-    ../src/draftable.nim
+    --out:draftable-debug --outdir:build \
+    src/draftable.nim
