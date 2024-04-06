@@ -2,7 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import std/os as os
 import std/parseopt as po
+from std/paths import Path, `/`
 from std/strformat import fmt
 
 # dependencies
@@ -11,15 +13,18 @@ import webui as webui
 # project imports
 import version as version
 import exit as exit
+import config as config
 when defined(DEBUG):
   import debug as debug
+
+const ProjectCofigFilename = "project.draftable"
 
 proc show_help =
   echo(version.long())
   echo(version.compiled())
   echo(version.copyright())
   echo()
-  echo(fmt"    {version.ProgramName} [options]")
+  echo(fmt"    {version.ProgramName} [options] PROJECT_DIR")
   echo()
   echo("Options for direct output:")
   echo("  --help         WARNING! Show this help and exit")
@@ -44,6 +49,8 @@ proc main =
     var p_debug = p
     debug.output_options(p_debug)
 
+  var project_dir: string = ""
+
   while true:
     p.next()
     case p.kind
@@ -61,7 +68,25 @@ proc main =
           else:
             exit.failure_msg(fmt"Unrecognized command line option '{p.key}'")
       of po.cmdArgument:
-        exit.failure_msg(fmt"This program doesn't take any non-option arguments: '{p.key}'")
+        if project_dir != "":
+          exit.failure_msg(fmt"This program only takes one non-option argument - new: '{p.key}'")
+        else:
+          project_dir = p.key
+
+  if project_dir == "":
+    exit.failure_msg("No project dir provided")
+
+  if not os.dirExists(project_dir):
+    if os.fileExists(project_dir):
+      exit.failure_msg("Provided project dir is actually a file")
+    else:
+      exit.failure_msg("Provided project dir does not exist")
+
+  let project_config_path: Path = project_dir.Path / ProjectCofigFilename.Path
+  if not os.fileExists(project_config_path.string):
+    exit.failure_msg(fmt"Project config file does not exist: '{ProjectCofigFilename}'")
+
+  let config: config.Config = config.parse_config(project_config_path)
 
   const
     IconData = staticRead("../icons/favicon.svg")
@@ -69,8 +94,6 @@ proc main =
     TemplateIndex = staticRead("../templates/index.html")
 
   let window = webui.newWindow()
-
-  #window.bind("", eh_log_type)
 
   window.bind("eh_click_hello", eh_click_hello)
 
