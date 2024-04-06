@@ -58,9 +58,15 @@ proc main =
       of po.cmdArgument:
         exit.failure_msg(fmt"This program doesn't take any non-option arguments: '{p.key}'")
 
-  const window_template = staticRead("../templates/index.html")
+  const
+    IconData = staticRead("../icons/favicon.svg")
+    IconType = "image/svg+xml"
+    TemplateIndex = staticRead("../templates/index.html")
+
   let window = webui.newWindow()
-  window.show(window_template)
+
+  window.setIcon(IconData, IconType)
+  window.show(TemplateIndex)
   webui.wait()
 
 when isMainModule:
