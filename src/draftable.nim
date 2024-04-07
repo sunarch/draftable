@@ -93,18 +93,20 @@ proc main =
   const
     IconData = staticRead("../icons/favicon.svg")
     IconType = "image/svg+xml"
-    PageIndexTemplate = staticRead("../templates/index/index.html")
-    PageIndexJs = staticRead("../templates/index/index.js")
-    PageIndexCss = staticRead("../templates/index/index.css")
+
+    HeadJs = staticRead("../templates/resources/script.js")
+    HeadCss = staticRead("../templates/resources/style.css")
+    BaseTemplateStartStub = staticRead("../templates/resources/base-start.html")
+    BaseTemplateStart = fmt(BaseTemplateStartStub)
+    BaseTemplateEnd = staticRead("../templates/resources/base-end.html")
+
+    PageIndexTemplate = staticRead("../templates/index.html")
 
   let main_file_path: Path = project_dir.Path / config.main_file.Path
   if not os.fileExists(main_file_path.string):
     exit.failure_msg(fmt"Main file does not exist: '{config.main_file}'")
 
-  let template_js = PageIndexJs
-  let template_css = PageIndexCss
   var template_table_inner = ""
-  var template_filled = ""
 
   let window = webui.newWindow()
   window.setIcon(IconData, IconType)
@@ -125,8 +127,7 @@ proc main =
         main_file_modified_new_s = main_file_modified_new.format(TimeFormat)
         debug.print(fmt"main modified: '{main_file_modified_old_s}' -> '{main_file_modified_new_s}'")
       template_table_inner = table.build(main_file_path)
-      template_filled = fmt(PageIndexTemplate)
-      window.show(template_filled)
+      window.show(fmt(PageIndexTemplate))
     if not window.shown():
       when defined(DEBUG):
         debug.print("Window not shown anymore, exiting...")
