@@ -4,3 +4,17 @@ function eh_click() {
             console.log(response);
         });
 }
+
+function navigate_index() {
+    webui.navigate_index()
+        .then((response) => {
+            console.log(response);
+        });
+}
+
+function navigate_licenses() {
+    webui.navigate_licenses()
+        .then((response) => {
+            console.log(response);
+        });
+}

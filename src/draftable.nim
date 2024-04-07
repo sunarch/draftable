@@ -19,7 +19,16 @@ import table as table
 when defined(DEBUG):
   import debug as debug
 
+
 const ProjectCofigFilename = "project.draftable"
+
+type
+  Status = object
+    current_page: string
+    is_outdated: bool = true
+
+var status: ref Status
+new(status)
 
 proc show_help =
   echo(version.long())
@@ -33,10 +42,24 @@ proc show_help =
   echo("  --version      WARNING! Show version information and exit")
   exit.success()
 
+
 proc eh_click_hello(e: webui.Event): string =
   let js_fn_name: string = e.element
   echo("JS function call to '", js_fn_name, "', event: '", e.eventType, "'")
   return "Message from Nim"
+
+
+proc closure_navigate_to_page(status: ref Status, page: string): proc =
+
+  proc navigate_to_page(e: webui.Event): string =
+    when defined(DEBUG):
+        debug.print(fmt"Navigating to '{page}' ...")
+    status.current_page = page
+    status.is_outdated = true
+    return fmt"Navigated to '{page}'"
+
+  result = navigate_to_page
+
 
 proc main =
 
@@ -101,7 +124,10 @@ proc main =
     BaseTemplateStart = fmt(BaseTemplateStartStub)
     BaseTemplateEnd = staticRead("../templates/resources/base-end.html")
 
-    PageIndexTemplate = staticRead("../templates/index.html")
+    PageIndex = "index"
+    PageIndexTemplate = staticRead(fmt"../templates/{PageIndex}.html")
+    PageLicenses = "licenses"
+    PageLicensesTemplate = staticRead(fmt"../templates/{PageLicenses}.html")
 
   let main_file_path: Path = project_dir.Path / config.main_file.Path
   if not os.fileExists(main_file_path.string):
@@ -109,26 +135,38 @@ proc main =
 
   var template_table_inner = ""
 
+  status.current_page = PageIndex
+
+  var is_status_modified = false
+  var template_filled = ""
+
   let window = webui.newWindow()
   window.setIcon(IconData, IconType)
   window.bind("eh_click_hello", eh_click_hello)
+  window.bind("navigate_index", closure_navigate_to_page(status, PageIndex))
+  window.bind("navigate_licenses", closure_navigate_to_page(status, PageLicenses))
 
   const TimeFormat = "HH:mm:ss"
   var main_file_modified_old: Time = os.getLastModificationTime(main_file_path.string)
   var main_file_modified_new: Time = main_file_modified_old - initDuration(minutes=1)
   when defined(DEBUG):
     var main_file_modified_old_s, main_file_modified_new_s: string
-  var is_source_modified = true
   const SleepMs = 1000
 
   while true:
-    if is_source_modified:
+    if status.is_outdated:
       when defined(DEBUG):
         main_file_modified_old_s = main_file_modified_old.format(TimeFormat)
         main_file_modified_new_s = main_file_modified_new.format(TimeFormat)
         debug.print(fmt"main modified: '{main_file_modified_old_s}' -> '{main_file_modified_new_s}'")
-      template_table_inner = table.build(main_file_path)
-      window.show(fmt(PageIndexTemplate))
+      case status.current_page
+        of PageLicenses:
+          template_filled = fmt(PageLicensesTemplate)
+        else:
+          template_table_inner = table.build(main_file_path)
+          template_filled = fmt(PageIndexTemplate)
+      window.show(template_filled)
+      status.is_outdated = false
     if not window.shown():
       when defined(DEBUG):
         debug.print("Window not shown anymore, exiting...")
@@ -136,7 +174,8 @@ proc main =
     os.sleep(SleepMs)
     main_file_modified_old = main_file_modified_new
     main_file_modified_new = os.getLastModificationTime(main_file_path.string)
-    is_source_modified = main_file_modified_old < main_file_modified_new
+    is_status_modified = main_file_modified_old < main_file_modified_new
+    status.is_outdated = status.is_outdated or is_status_modified
 
 
 when isMainModule:
