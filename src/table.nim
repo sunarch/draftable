@@ -7,9 +7,6 @@ import std/streams as streams
 from std/strformat import fmt
 from std/strutils import split, strip, `%`
 
-# project imports
-import exit as exit
-
 
 type SourceItem = object
   level: string = ""
@@ -17,21 +14,25 @@ type SourceItem = object
   content: string = ""
 
 
-proc parse_line(line: string): SourceItem =
+func html_tag(tag: string, content: string, class: string = ""): string =
+  result = fmt("<{tag} class=\"{class}\">{content}</{tag}>")
+
+
+func parse_line(line: string): SourceItem =
   result = SourceItem()
 
   let split_iter: seq[string] = line.split('|', maxsplit=2)
 
   if split_iter.len != 3:
-    exit.failure_msg(fmt"Malformatted meta in source line: '{line}'")
+    result.level = "p1"
+    result.id = "**WARN**"
+    let content_prefix = html_tag("b", "Malformed meta in source line:")
+    result.content = fmt"{content_prefix} '{line}'"
+    return
 
   result.level = split_iter[0].strip
   result.id = split_iter[1].strip
   result.content = split_iter[2].strip
-
-
-func html_tag(tag: string, content: string, class: string = ""): string =
-  result = fmt("<{tag} class=\"{class}\">{content}</{tag}>")
 
 
 func table_row(content: string): string =
@@ -42,7 +43,7 @@ func table_cell(content: string): string =
   result = html_tag("td", content)
 
 
-proc build_row(line: string): string =
+func build_row(line: string): string =
 
   let source_item = parse_line(line)
 
