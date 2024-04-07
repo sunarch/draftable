@@ -6,6 +6,7 @@ import std/os as os
 import std/parseopt as po
 from std/paths import Path, `/`
 from std/strformat import fmt
+from std/times import Time, format, initDuration, `-`, `<`
 
 # dependencies
 import webui as webui
@@ -102,16 +103,39 @@ proc main =
 
   let template_js = PageIndexJs
   let template_css = PageIndexCss
-  let template_table_inner = table.build(main_file_path)
-  let template_filled = fmt(PageIndexTemplate)
+  var template_table_inner = ""
+  var template_filled = ""
 
   let window = webui.newWindow()
-
+  window.setIcon(IconData, IconType)
   window.bind("eh_click_hello", eh_click_hello)
 
-  window.setIcon(IconData, IconType)
-  window.show(template_filled)
-  webui.wait()
+  const TimeFormat = "HH:mm:ss"
+  var main_file_modified_old: Time = os.getLastModificationTime(main_file_path.string)
+  var main_file_modified_new: Time = main_file_modified_old - initDuration(minutes=1)
+  when defined(DEBUG):
+    var main_file_modified_old_s, main_file_modified_new_s: string
+  var is_source_modified = true
+  const SleepMs = 1000
+
+  while true:
+    if is_source_modified:
+      when defined(DEBUG):
+        main_file_modified_old_s = main_file_modified_old.format(TimeFormat)
+        main_file_modified_new_s = main_file_modified_new.format(TimeFormat)
+        debug.print(fmt"main modified: '{main_file_modified_old_s}' -> '{main_file_modified_new_s}'")
+      template_table_inner = table.build(main_file_path)
+      template_filled = fmt(PageIndexTemplate)
+      window.show(template_filled)
+    if not window.shown():
+      when defined(DEBUG):
+        debug.print("Window not shown anymore, exiting...")
+      break
+    os.sleep(SleepMs)
+    main_file_modified_old = main_file_modified_new
+    main_file_modified_new = os.getLastModificationTime(main_file_path.string)
+    is_source_modified = main_file_modified_old < main_file_modified_new
+
 
 when isMainModule:
   main()
