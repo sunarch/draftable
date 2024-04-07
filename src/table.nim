@@ -49,17 +49,26 @@ func build_row(line: string): string =
 
   var content = source_item.content
   case source_item.level
-    of "h1":
+    of "#":  # Heading 1
       content = html_tag("h1", content)
-    of "h2":
+    of "##":  # Heading 2
       content = html_tag("h2", content)
+    of "###":  # Heading 3
+      content = html_tag("h3", content)
+    of "####":  # Heading 4
+      content = html_tag("h4", content)
+    of "#####":  # Heading 5
+      content = html_tag("h5", content)
+    of "######":  # Heading 6
+      content = html_tag("h6", content)
     of "p1":
       content = content
     of "p2":
       let prefix = html_tag("span", "    ", "indent-1")
       content = fmt"{prefix}{content}"
     else:
-      content = content
+      let prefix_unformatted = "[**UNFORMATTED**]"
+      content = fmt"{prefix_unformatted}{content}"
 
   let cell_id = table_cell(source_item.id)
   let cell_content = table_cell(content)
