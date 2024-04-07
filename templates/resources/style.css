@@ -1,14 +1,5 @@
-table, td {
-    border-width: 1pt;
-    border-style: solid;
-    border-color: black;
-
-    border-collapse: collapse;
-}
-
-td {
-    margin: 0;
-    padding: 5pt;
+body {
+    width: 95% !important;
 }
 
 td:first-child {

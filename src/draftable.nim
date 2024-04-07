@@ -95,6 +95,7 @@ proc main =
     IconType = "image/svg+xml"
 
     HeadJs = staticRead("../templates/resources/script.js")
+    HeadCssReadableCss = staticRead("../templates/resources/readable.css")
     HeadCss = staticRead("../templates/resources/style.css")
     BaseTemplateStartStub = staticRead("../templates/resources/base-start.html")
     BaseTemplateStart = fmt(BaseTemplateStartStub)
