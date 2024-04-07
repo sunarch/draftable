@@ -1,0 +1,21 @@
+table, td {
+    border-width: 1pt;
+    border-style: solid;
+    border-color: black;
+
+    border-collapse: collapse;
+}
+
+td {
+    margin: 0;
+    padding: 5pt;
+}
+
+td:first-child {
+    white-space: nowrap;
+}
+
+.indent-1 {
+    display: inline-block;
+    width: 2em;
+}

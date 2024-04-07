@@ -14,6 +14,7 @@ import webui as webui
 import version as version
 import exit as exit
 import config as config
+import table as table
 when defined(DEBUG):
   import debug as debug
 
@@ -91,14 +92,25 @@ proc main =
   const
     IconData = staticRead("../icons/favicon.svg")
     IconType = "image/svg+xml"
-    TemplateIndex = staticRead("../templates/index.html")
+    PageIndexTemplate = staticRead("../templates/index/index.html")
+    PageIndexJs = staticRead("../templates/index/index.js")
+    PageIndexCss = staticRead("../templates/index/index.css")
+
+  let main_file_path: Path = project_dir.Path / config.main_file.Path
+  if not os.fileExists(main_file_path.string):
+    exit.failure_msg(fmt"Main file does not exist: '{config.main_file}'")
+
+  let template_js = PageIndexJs
+  let template_css = PageIndexCss
+  let template_table_inner = table.build(main_file_path)
+  let template_filled = fmt(PageIndexTemplate)
 
   let window = webui.newWindow()
 
   window.bind("eh_click_hello", eh_click_hello)
 
   window.setIcon(IconData, IconType)
-  window.show(TemplateIndex)
+  window.show(template_filled)
   webui.wait()
 
 when isMainModule:

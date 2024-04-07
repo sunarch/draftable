@@ -13,7 +13,7 @@ when defined(DEBUG):
 
 
 type Config* = object
-  main_file: string = ""
+  main_file*: string = ""
 
 
 proc parse_config*(project_config_path: Path): Config =
