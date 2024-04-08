@@ -88,7 +88,7 @@ proc closure_navigate_to_page(status: ref Status, page: string): proc =
   result = navigate_to_page
 
 
-proc live_view(config: config.Config, main_file_path: Path) =
+proc live_view(config: config.Config, main_file_path: Path): string =
 
   var
     status: ref Status
@@ -136,6 +136,8 @@ proc live_view(config: config.Config, main_file_path: Path) =
     status.modified_new = os.getLastModificationTime(main_file_path.string)
     status.is_outdated = status.is_outdated or status.modified_old < status.modified_new
 
+  result = fmt(PageIndexTemplate)
+
 
 proc verify_project_dir(project_dir: string) =
   if project_dir == "":
@@ -148,8 +150,12 @@ proc verify_project_dir(project_dir: string) =
     exit.failure_msg("Provided project dir does not exist")
 
 
-proc create_and_verify_file_path(dir: string, filename: string, desciption: string): Path =
+proc create_file_path(dir: string, filename: string): Path =
   result = dir.Path / filename.Path
+
+
+proc create_and_verify_file_path(dir: string, filename: string, desciption: string): Path =
+  result = create_file_path(dir, filename)
   if not os.fileExists(result.string):
     exit.failure_msg(fmt"{desciption} file does not exist: '{filename}'")
 
@@ -199,7 +205,10 @@ proc main =
     main_file_path: Path = create_and_verify_file_path(
       project_dir, config.main_file, "Project main")
 
-  live_view(config, main_file_path)
+    save_file_path: Path = create_file_path(project_dir, "index.html")
+
+  let last_rendered = live_view(config, main_file_path)
+  writeFile(save_file_path.string, last_rendered)
 
 
 when isMainModule:
