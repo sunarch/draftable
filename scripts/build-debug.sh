@@ -10,4 +10,5 @@ nim compile \
     --define:DEBUG \
     --define:COMPILE_DATE:"$CURRENT_DATE" \
     --out:draftable-debug --outdir:build \
+    --path:src/lib \
     src/draftable.nim

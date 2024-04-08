@@ -11,4 +11,5 @@ nim compile \
     --out:draftable --outdir:build \
     -d:release --passL:-static \
     --gcc.exe:musl-gcc --gcc.linkerexe:musl-gcc \
+    --path:src/lib \
     src/draftable.nim

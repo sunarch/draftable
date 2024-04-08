@@ -10,4 +10,5 @@ nim compile \
     --define:COMPILE_DATE:"$CURRENT_DATE" \
     --out:draftable-release --outdir:build \
     -d:release \
+    --path:src/lib \
     src/draftable.nim
