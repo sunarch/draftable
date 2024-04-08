@@ -20,7 +20,7 @@ when defined(DEBUG):
   import debug as debug
 
 const
-  options_long_no_val = @[
+  OptionsLongNoVal = @[
     "help",
     "version",
   ]
@@ -152,7 +152,7 @@ proc create_and_verify_file_path(dir: string, filename: string, desciption: stri
 
 proc main =
 
-  var p = po.initOptParser(shortNoVal = {}, longNoVal = options_long_no_val)
+  var p = po.initOptParser(shortNoVal = {}, longNoVal = OptionsLongNoVal)
 
   when defined(DEBUG):
     var p_debug = p
@@ -166,7 +166,7 @@ proc main =
       of po.cmdEnd:
         break
       of po.cmdShortOption, po.cmdLongOption:
-        if p.key in options_long_no_val and p.val != "":
+        if p.key in OptionsLongNoVal and p.val != "":
           exit.failure_msg(fmt"Command line option '{p.key}' doesn't take a value")
         case p.key:
         # Options for direct output:
