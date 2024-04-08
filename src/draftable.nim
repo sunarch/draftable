@@ -88,7 +88,6 @@ proc live_view(config: config.Config, main_file_path: Path) =
 
   var
     status: ref Status
-    is_status_modified: bool
     template_table_inner: string
     template_filled: string
   when defined(DEBUG):
@@ -129,8 +128,7 @@ proc live_view(config: config.Config, main_file_path: Path) =
     os.sleep(UpdateSleepMs)
     main_file_modified_old = main_file_modified_new
     main_file_modified_new = os.getLastModificationTime(main_file_path.string)
-    is_status_modified = main_file_modified_old < main_file_modified_new
-    status.is_outdated = status.is_outdated or is_status_modified
+    status.is_outdated = status.is_outdated or main_file_modified_old < main_file_modified_new
 
 
 proc verify_project_dir(project_dir: string) =
