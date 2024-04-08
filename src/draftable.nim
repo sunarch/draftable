@@ -19,8 +19,33 @@ import table as table
 when defined(DEBUG):
   import debug as debug
 
+const
+  options_long_no_val = @[
+    "help",
+    "version",
+  ]
 
-const ProjectCofigFilename = "project.draftable"
+  ProjectCofigFilename = "project.draftable"
+  UpdateSleepMs = 1000
+
+  IconData = staticRead("../icons/favicon.svg")
+  IconType = "image/svg+xml"
+
+  HeadJs = staticRead("../templates/resources/script.js")
+  HeadCssReadableCss = staticRead("../templates/resources/readable.css")
+  HeadCss = staticRead("../templates/resources/style.css")
+  BaseTemplateStartStub = staticRead("../templates/resources/base-start.html")
+  BaseTemplateStart = fmt(BaseTemplateStartStub)
+  BaseTemplateEnd = staticRead("../templates/resources/base-end.html")
+
+  PageIndex = "index"
+  PageIndexTemplate = staticRead(fmt"../templates/{PageIndex}.html")
+  PageLicenses = "licenses"
+  PageLicensesTemplate = staticRead(fmt"../templates/{PageLicenses}.html")
+
+when defined(DEBUG):
+  const
+    TimeFormat = "HH:mm:ss"
 
 type
   Status = object
@@ -29,6 +54,7 @@ type
 
 var status: ref Status
 new(status)
+
 
 proc show_help =
   echo(version.long())
@@ -62,11 +88,6 @@ proc closure_navigate_to_page(status: ref Status, page: string): proc =
 
 
 proc main =
-
-  const options_long_no_val = @[
-    "help",
-    "version"
-  ]
 
   var p = po.initOptParser(shortNoVal = {}, longNoVal = options_long_no_val)
 
@@ -113,22 +134,6 @@ proc main =
 
   let config: config.Config = config.parse_config(project_config_path)
 
-  const
-    IconData = staticRead("../icons/favicon.svg")
-    IconType = "image/svg+xml"
-
-    HeadJs = staticRead("../templates/resources/script.js")
-    HeadCssReadableCss = staticRead("../templates/resources/readable.css")
-    HeadCss = staticRead("../templates/resources/style.css")
-    BaseTemplateStartStub = staticRead("../templates/resources/base-start.html")
-    BaseTemplateStart = fmt(BaseTemplateStartStub)
-    BaseTemplateEnd = staticRead("../templates/resources/base-end.html")
-
-    PageIndex = "index"
-    PageIndexTemplate = staticRead(fmt"../templates/{PageIndex}.html")
-    PageLicenses = "licenses"
-    PageLicensesTemplate = staticRead(fmt"../templates/{PageLicenses}.html")
-
   let main_file_path: Path = project_dir.Path / config.main_file.Path
   if not os.fileExists(main_file_path.string):
     exit.failure_msg(fmt"Main file does not exist: '{config.main_file}'")
@@ -146,12 +151,10 @@ proc main =
   window.bind("navigate_index", closure_navigate_to_page(status, PageIndex))
   window.bind("navigate_licenses", closure_navigate_to_page(status, PageLicenses))
 
-  const TimeFormat = "HH:mm:ss"
   var main_file_modified_old: Time = os.getLastModificationTime(main_file_path.string)
   var main_file_modified_new: Time = main_file_modified_old - initDuration(minutes=1)
   when defined(DEBUG):
     var main_file_modified_old_s, main_file_modified_new_s: string
-  const SleepMs = 1000
 
   while true:
     if status.is_outdated:
@@ -171,7 +174,7 @@ proc main =
       when defined(DEBUG):
         debug.print("Window not shown anymore, exiting...")
       break
-    os.sleep(SleepMs)
+    os.sleep(UpdateSleepMs)
     main_file_modified_old = main_file_modified_new
     main_file_modified_new = os.getLastModificationTime(main_file_path.string)
     is_status_modified = main_file_modified_old < main_file_modified_new
