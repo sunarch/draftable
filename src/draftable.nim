@@ -84,6 +84,55 @@ proc closure_navigate_to_page(status: ref Status, page: string): proc =
   result = navigate_to_page
 
 
+proc live_view(config: config.Config, main_file_path: Path) =
+
+  var
+    status: ref Status
+    is_status_modified: bool
+    template_table_inner: string
+    template_filled: string
+  when defined(DEBUG):
+    var
+      main_file_modified_old_s: string
+      main_file_modified_new_s: string
+
+  new(status)
+  status.current_page = PageIndex
+
+  let window: webui.Window = webui.newWindow()
+  window.setIcon(IconData, IconType)
+  window.bind("eh_click_hello", eh_click_hello)
+  window.bind("navigate_index", closure_navigate_to_page(status, PageIndex))
+  window.bind("navigate_licenses", closure_navigate_to_page(status, PageLicenses))
+
+  var main_file_modified_old: Time = os.getLastModificationTime(main_file_path.string)
+  var main_file_modified_new: Time = main_file_modified_old - initDuration(minutes=1)
+
+  while true:
+    if status.is_outdated:
+      when defined(DEBUG):
+        main_file_modified_old_s = main_file_modified_old.format(TimeFormat)
+        main_file_modified_new_s = main_file_modified_new.format(TimeFormat)
+        debug.print(fmt"main modified: '{main_file_modified_old_s}' -> '{main_file_modified_new_s}'")
+      case status.current_page
+        of PageLicenses:
+          template_filled = fmt(PageLicensesTemplate)
+        else:
+          template_table_inner = table.build(main_file_path)
+          template_filled = fmt(PageIndexTemplate)
+      window.show(template_filled)
+      status.is_outdated = false
+    if not window.shown():
+      when defined(DEBUG):
+        debug.print("Window not shown anymore, exiting...")
+      break
+    os.sleep(UpdateSleepMs)
+    main_file_modified_old = main_file_modified_new
+    main_file_modified_new = os.getLastModificationTime(main_file_path.string)
+    is_status_modified = main_file_modified_old < main_file_modified_new
+    status.is_outdated = status.is_outdated or is_status_modified
+
+
 proc main =
 
   var p = po.initOptParser(shortNoVal = {}, longNoVal = options_long_no_val)
@@ -135,51 +184,7 @@ proc main =
   if not os.fileExists(main_file_path.string):
     exit.failure_msg(fmt"Main file does not exist: '{config.main_file}'")
 
-  var
-    status: ref Status
-    is_status_modified: bool
-    template_table_inner: string
-    template_filled: string
-  when defined(DEBUG):
-    var
-      main_file_modified_old_s: string
-      main_file_modified_new_s: string
-
-  new(status)
-  status.current_page = PageIndex
-
-  let window: webui.Window = webui.newWindow()
-  window.setIcon(IconData, IconType)
-  window.bind("eh_click_hello", eh_click_hello)
-  window.bind("navigate_index", closure_navigate_to_page(status, PageIndex))
-  window.bind("navigate_licenses", closure_navigate_to_page(status, PageLicenses))
-
-  var main_file_modified_old: Time = os.getLastModificationTime(main_file_path.string)
-  var main_file_modified_new: Time = main_file_modified_old - initDuration(minutes=1)
-
-  while true:
-    if status.is_outdated:
-      when defined(DEBUG):
-        main_file_modified_old_s = main_file_modified_old.format(TimeFormat)
-        main_file_modified_new_s = main_file_modified_new.format(TimeFormat)
-        debug.print(fmt"main modified: '{main_file_modified_old_s}' -> '{main_file_modified_new_s}'")
-      case status.current_page
-        of PageLicenses:
-          template_filled = fmt(PageLicensesTemplate)
-        else:
-          template_table_inner = table.build(main_file_path)
-          template_filled = fmt(PageIndexTemplate)
-      window.show(template_filled)
-      status.is_outdated = false
-    if not window.shown():
-      when defined(DEBUG):
-        debug.print("Window not shown anymore, exiting...")
-      break
-    os.sleep(UpdateSleepMs)
-    main_file_modified_old = main_file_modified_new
-    main_file_modified_new = os.getLastModificationTime(main_file_path.string)
-    is_status_modified = main_file_modified_old < main_file_modified_new
-    status.is_outdated = status.is_outdated or is_status_modified
+  live_view(config, main_file_path)
 
 
 when isMainModule:
