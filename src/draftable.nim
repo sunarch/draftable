@@ -25,7 +25,7 @@ const
     "version",
   ]
 
-  ProjectCofigFilename = "project.draftable"
+  ProjectConfigFilename = "project.draftable"
   UpdateSleepMs = 1000
 
   IconData = staticRead("../icons/favicon.svg")
@@ -186,7 +186,7 @@ proc main =
 
   let
     project_config_path: Path = create_and_verify_file_path(
-      project_dir, ProjectCofigFilename, "Project config")
+      project_dir, ProjectConfigFilename, "Project config")
 
     config: config.Config = config.parse_config(project_config_path)
 
