@@ -173,7 +173,7 @@ proc main =
           of "help":
             show_help()
           of "version":
-            success_msg(version.long())
+            exit.success_msg(version.long())
           else:
             exit.failure_msg(fmt"Unrecognized command line option '{p.key}'")
       of po.cmdArgument:
