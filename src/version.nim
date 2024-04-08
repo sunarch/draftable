@@ -4,6 +4,7 @@
 
 from std/strformat import fmt
 
+
 const
   ProgramName* = "draftable"
   VersionMajor = 0
@@ -12,14 +13,18 @@ const
   CopyrightYears = "2024"
   CopyrightName = "András Németh"
 
+
 func short: string =
   result = fmt"{VersionMajor}.{VersionMinor}.{VersionPatch}"
+
 
 func long*: string =
   result = fmt"{ProgramName} {short()}"
 
+
 func compiled*: string =
   result = fmt"Compiled on {COMPILE_DATE}"
+
 
 func copyright*: string =
   result = fmt"Copyright (c) {CopyrightYears} by {CopyrightName}"

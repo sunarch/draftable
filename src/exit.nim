@@ -4,14 +4,18 @@
 
 from system import string, quit, QuitSuccess, QuitFailure
 
+
 proc success* =
   quit(QuitSuccess)
+
 
 proc success_msg*(output: string) =
   quit(output, QuitSuccess)
 
+
 proc failure* =
   quit(QuitFailure)
+
 
 proc failure_msg*(output: string) =
   quit(output, QuitFailure)

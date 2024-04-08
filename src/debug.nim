@@ -5,10 +5,14 @@
 from std/parseopt import OptParser, next, cmdEnd
 from std/strformat import fmt
 
-const Prefix: string = "[DEBUG:] "
+
+const
+  Prefix: string = "[DEBUG:] "
+
 
 proc print*(line: string) =
   echo(fmt"{Prefix}{line}")
+
 
 proc output_options*(p_debug: var OptParser) =
   while true:

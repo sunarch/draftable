@@ -19,6 +19,7 @@ import table as table
 when defined(DEBUG):
   import debug as debug
 
+
 const
   OptionsLongNoVal = @[
     "help",
@@ -46,6 +47,7 @@ const
 when defined(DEBUG):
   const
     TimeFormat = "HH:mm:ss"
+
 
 type
   Status = object
@@ -122,11 +124,14 @@ proc live_view(config: config.Config, main_file_path: Path) =
           template_filled = fmt(PageIndexTemplate)
       window.show(template_filled)
       status.is_outdated = false
+
     if not window.shown():
       when defined(DEBUG):
         debug.print("Window not shown anymore, exiting...")
       break
+
     os.sleep(UpdateSleepMs)
+
     status.modified_old = status.modified_new
     status.modified_new = os.getLastModificationTime(main_file_path.string)
     status.is_outdated = status.is_outdated or status.modified_old < status.modified_new
