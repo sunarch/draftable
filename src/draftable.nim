@@ -169,7 +169,9 @@ proc main =
     case p.kind
       of po.cmdEnd:
         break
-      of po.cmdShortOption, po.cmdLongOption:
+      of po.cmdShortOption:
+        exit.failure_msg(fmt"This program does not take short arguments: '{p.key}'")
+      of po.cmdLongOption:
         if p.key in OptionsLongNoVal and p.val != "":
           exit.failure_msg(fmt"Command line option '{p.key}' doesn't take a value")
         case p.key:
