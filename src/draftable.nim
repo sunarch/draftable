@@ -135,16 +135,20 @@ proc main =
   if not os.fileExists(main_file_path.string):
     exit.failure_msg(fmt"Main file does not exist: '{config.main_file}'")
 
-  var template_table_inner = ""
+  var
+    status: ref Status
+    is_status_modified: bool
+    template_table_inner: string
+    template_filled: string
+  when defined(DEBUG):
+    var
+      main_file_modified_old_s: string
+      main_file_modified_new_s: string
 
-  var status: ref Status
   new(status)
   status.current_page = PageIndex
 
-  var is_status_modified = false
-  var template_filled = ""
-
-  let window = webui.newWindow()
+  let window: webui.Window = webui.newWindow()
   window.setIcon(IconData, IconType)
   window.bind("eh_click_hello", eh_click_hello)
   window.bind("navigate_index", closure_navigate_to_page(status, PageIndex))
@@ -152,8 +156,6 @@ proc main =
 
   var main_file_modified_old: Time = os.getLastModificationTime(main_file_path.string)
   var main_file_modified_new: Time = main_file_modified_old - initDuration(minutes=1)
-  when defined(DEBUG):
-    var main_file_modified_old_s, main_file_modified_new_s: string
 
   while true:
     if status.is_outdated:
