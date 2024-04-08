@@ -52,9 +52,6 @@ type
     current_page: string
     is_outdated: bool = true
 
-var status: ref Status
-new(status)
-
 
 proc show_help =
   echo(version.long())
@@ -140,6 +137,8 @@ proc main =
 
   var template_table_inner = ""
 
+  var status: ref Status
+  new(status)
   status.current_page = PageIndex
 
   var is_status_modified = false
