@@ -133,6 +133,23 @@ proc live_view(config: config.Config, main_file_path: Path) =
     status.is_outdated = status.is_outdated or is_status_modified
 
 
+proc verify_project_dir(project_dir: string) =
+  if project_dir == "":
+    exit.failure_msg("No project dir provided")
+  elif os.dirExists(project_dir):
+    return
+  elif os.fileExists(project_dir):
+    exit.failure_msg("Provided project dir is actually a file")
+  else:
+    exit.failure_msg("Provided project dir does not exist")
+
+
+proc create_and_verify_file_path(dir: string, filename: string, desciption: string): Path =
+  result = dir.Path / filename.Path
+  if not os.fileExists(result.string):
+    exit.failure_msg(fmt"{desciption} file does not exist: '{filename}'")
+
+
 proc main =
 
   var p = po.initOptParser(shortNoVal = {}, longNoVal = options_long_no_val)
@@ -165,24 +182,16 @@ proc main =
         else:
           project_dir = p.key
 
-  if project_dir == "":
-    exit.failure_msg("No project dir provided")
+  verify_project_dir(project_dir)
 
-  if not os.dirExists(project_dir):
-    if os.fileExists(project_dir):
-      exit.failure_msg("Provided project dir is actually a file")
-    else:
-      exit.failure_msg("Provided project dir does not exist")
+  let
+    project_config_path: Path = create_and_verify_file_path(
+      project_dir, ProjectCofigFilename, "Project config")
 
-  let project_config_path: Path = project_dir.Path / ProjectCofigFilename.Path
-  if not os.fileExists(project_config_path.string):
-    exit.failure_msg(fmt"Project config file does not exist: '{ProjectCofigFilename}'")
+    config: config.Config = config.parse_config(project_config_path)
 
-  let config: config.Config = config.parse_config(project_config_path)
-
-  let main_file_path: Path = project_dir.Path / config.main_file.Path
-  if not os.fileExists(main_file_path.string):
-    exit.failure_msg(fmt"Main file does not exist: '{config.main_file}'")
+    main_file_path: Path = create_and_verify_file_path(
+      project_dir, config.main_file, "Project main")
 
   live_view(config, main_file_path)
 
