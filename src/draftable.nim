@@ -50,6 +50,8 @@ when defined(DEBUG):
 type
   Status = object
     current_page: string
+    modified_old: Time
+    modified_new: Time
     is_outdated: bool = true
 
 
@@ -92,11 +94,13 @@ proc live_view(config: config.Config, main_file_path: Path) =
     template_filled: string
   when defined(DEBUG):
     var
-      main_file_modified_old_s: string
-      main_file_modified_new_s: string
+      modified_old_s: string
+      modified_new_s: string
 
   new(status)
   status.current_page = PageIndex
+  status.modified_old = os.getLastModificationTime(main_file_path.string)
+  status.modified_new = status.modified_old - initDuration(minutes=1)
 
   let window: webui.Window = webui.newWindow()
   window.setIcon(IconData, IconType)
@@ -104,15 +108,12 @@ proc live_view(config: config.Config, main_file_path: Path) =
   window.bind("navigate_index", closure_navigate_to_page(status, PageIndex))
   window.bind("navigate_licenses", closure_navigate_to_page(status, PageLicenses))
 
-  var main_file_modified_old: Time = os.getLastModificationTime(main_file_path.string)
-  var main_file_modified_new: Time = main_file_modified_old - initDuration(minutes=1)
-
   while true:
     if status.is_outdated:
       when defined(DEBUG):
-        main_file_modified_old_s = main_file_modified_old.format(TimeFormat)
-        main_file_modified_new_s = main_file_modified_new.format(TimeFormat)
-        debug.print(fmt"main modified: '{main_file_modified_old_s}' -> '{main_file_modified_new_s}'")
+        modified_old_s = status.modified_old.format(TimeFormat)
+        modified_new_s = status.modified_new.format(TimeFormat)
+        debug.print(fmt"main modified: '{modified_old_s}' -> '{modified_new_s}'")
       case status.current_page
         of PageLicenses:
           template_filled = fmt(PageLicensesTemplate)
@@ -126,9 +127,9 @@ proc live_view(config: config.Config, main_file_path: Path) =
         debug.print("Window not shown anymore, exiting...")
       break
     os.sleep(UpdateSleepMs)
-    main_file_modified_old = main_file_modified_new
-    main_file_modified_new = os.getLastModificationTime(main_file_path.string)
-    status.is_outdated = status.is_outdated or main_file_modified_old < main_file_modified_new
+    status.modified_old = status.modified_new
+    status.modified_new = os.getLastModificationTime(main_file_path.string)
+    status.is_outdated = status.is_outdated or status.modified_old < status.modified_new
 
 
 proc verify_project_dir(project_dir: string) =
